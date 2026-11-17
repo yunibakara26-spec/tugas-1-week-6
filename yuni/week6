@@ -1,0 +1,349 @@
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ButtonGroup;
+import javax.swing.table.DefaultTableModel;
+
+class tugasweek6_2 {
+    private final JFrame frame = new JFrame("Aplikasi Mahasiswa");
+    private final JTextArea editor = new JTextArea();
+    private final DefaultTableModel tableModel = new DefaultTableModel(
+            new Object[] { "Nama", "Program Studi", "IPK" }, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
+    private Path currentFile;
+
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(() -> new tugasweek6_2().showWindow());
+    }
+
+    private void showWindow() {
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(850, 600);
+        frame.setLocationRelativeTo(null);
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Form Pendaftaran", createRegistrationPanel());
+        tabs.addTab("Editor Text", createEditorPanel());
+        tabs.addTab("Data Mahasiswa", createStudentPanel());
+        frame.add(tabs);
+
+        frame.setJMenuBar(createMenuBar());
+        frame.setVisible(true);
+    }
+
+    private JPanel createRegistrationPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        JTextField nameField = new JTextField(22);
+        JTextField emailField = new JTextField(22);
+        JPasswordField passwordField = new JPasswordField(22);
+        JRadioButton maleButton = new JRadioButton("Laki-laki");
+        JRadioButton femaleButton = new JRadioButton("Perempuan");
+        ButtonGroup genderGroup = new ButtonGroup();
+        genderGroup.add(maleButton);
+        genderGroup.add(femaleButton);
+        JPanel genderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        genderPanel.add(maleButton);
+        genderPanel.add(femaleButton);
+
+        JComboBox<String> programCombo = new JComboBox<>(new String[] {
+                "Teknik Informatika", "Sistem Informasi", "Manajemen", "Akuntansi"
+        });
+        JCheckBox codingCheck = new JCheckBox("Coding");
+        JCheckBox readingCheck = new JCheckBox("Membaca");
+        JCheckBox musicCheck = new JCheckBox("Musik");
+        JCheckBox sportsCheck = new JCheckBox("Olahraga");
+        JPanel hobbyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        hobbyPanel.add(codingCheck);
+        hobbyPanel.add(readingCheck);
+        hobbyPanel.add(musicCheck);
+        hobbyPanel.add(sportsCheck);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Nama:"), gbc);
+        gbc.gridx = 1;
+        panel.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Email:"), gbc);
+        gbc.gridx = 1;
+        panel.add(emailField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Sandi:"), gbc);
+        gbc.gridx = 1;
+        panel.add(passwordField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Gender:"), gbc);
+        gbc.gridx = 1;
+        panel.add(genderPanel, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Program Studi:"), gbc);
+        gbc.gridx = 1;
+        panel.add(programCombo, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("Hobi:"), gbc);
+        gbc.gridx = 1;
+        panel.add(hobbyPanel, gbc);
+
+        JButton registerButton = new JButton("Daftar");
+        gbc.gridx = 1;
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        panel.add(registerButton, gbc);
+
+        registerButton.addActionListener(event -> {
+            List<String> hobbies = new ArrayList<>();
+            if (codingCheck.isSelected()) hobbies.add("Coding");
+            if (readingCheck.isSelected()) hobbies.add("Membaca");
+            if (musicCheck.isSelected()) hobbies.add("Musik");
+            if (sportsCheck.isSelected()) hobbies.add("Olahraga");
+
+            String gender = maleButton.isSelected() ? "Laki-laki"
+                    : femaleButton.isSelected() ? "Perempuan" : "Belum dipilih";
+            String hobbyText = hobbies.isEmpty() ? "Tidak ada" : String.join(", ", hobbies);
+            String summary = "Nama: " + nameField.getText().trim()
+                    + "\nEmail: " + emailField.getText().trim()
+                    + "\nSandi: " + (passwordField.getPassword().length == 0 ? "Belum diisi" : "••••••")
+                    + "\nGender: " + gender
+                    + "\nProgram Studi: " + programCombo.getSelectedItem()
+                    + "\nHobi: " + hobbyText;
+            JOptionPane.showMessageDialog(frame, summary, "Ringkasan Pendaftaran",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        return panel;
+    }
+
+    private JPanel createEditorPanel() {
+        editor.setLineWrap(true);
+        editor.setWrapStyleWord(true);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(createEditorToolbar(), BorderLayout.NORTH);
+        panel.add(new JScrollPane(editor), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createEditorToolbar() {
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addToolbarButton(toolbar, "Baru", this::newDocument);
+        addToolbarButton(toolbar, "Buka", this::openDocument);
+        addToolbarButton(toolbar, "Simpan", this::saveDocument);
+        addToolbarButton(toolbar, "Potong", editor::cut);
+        addToolbarButton(toolbar, "Salin", editor::copy);
+        addToolbarButton(toolbar, "Tempel", editor::paste);
+        return toolbar;
+    }
+
+    private void addToolbarButton(JPanel toolbar, String title, Runnable action) {
+        JButton button = new JButton(title);
+        button.addActionListener(event -> action.run());
+        toolbar.add(button);
+    }
+
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        addMenuItem(fileMenu, "Baru", this::newDocument);
+        addMenuItem(fileMenu, "Buka", this::openDocument);
+        addMenuItem(fileMenu, "Simpan", this::saveDocument);
+        fileMenu.addSeparator();
+        addMenuItem(fileMenu, "Keluar", frame::dispose);
+
+        JMenu editMenu = new JMenu("Edit");
+        addMenuItem(editMenu, "Potong", editor::cut);
+        addMenuItem(editMenu, "Salin", editor::copy);
+        addMenuItem(editMenu, "Tempel", editor::paste);
+
+        menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        return menuBar;
+    }
+
+    private void addMenuItem(JMenu menu, String title, Runnable action) {
+        JMenuItem item = new JMenuItem(title);
+        item.addActionListener(event -> action.run());
+        menu.add(item);
+    }
+
+    private void newDocument() {
+        editor.setText("");
+        currentFile = null;
+    }
+
+    private void openDocument() {
+        JFileChooser chooser = new JFileChooser();
+        if (chooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+
+        Path selectedFile = chooser.getSelectedFile().toPath();
+        try {
+            editor.setText(Files.readString(selectedFile, StandardCharsets.UTF_8));
+            currentFile = selectedFile;
+            editor.setCaretPosition(0);
+        } catch (IOException exception) {
+            showFileError("membuka", exception);
+        }
+    }
+
+    private void saveDocument() {
+        if (currentFile == null) {
+            JFileChooser chooser = new JFileChooser();
+            if (chooser.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+            currentFile = chooser.getSelectedFile().toPath();
+        }
+
+        try {
+            Files.writeString(currentFile, editor.getText(), StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            showFileError("menyimpan", exception);
+        }
+    }
+
+    private void showFileError(String action, IOException exception) {
+        JOptionPane.showMessageDialog(frame,
+                "Gagal " + action + " file:\n" + exception.getMessage(),
+                "Kesalahan File", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private JPanel createStudentPanel() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        JTable table = new JTable(tableModel);
+        table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JButton addButton = new JButton("Tambah Data");
+        JButton editButton = new JButton("Ubah Data Terpilih");
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttons.add(addButton);
+        buttons.add(editButton);
+        panel.add(buttons, BorderLayout.SOUTH);
+
+        addButton.addActionListener(event -> {
+            Object[] student = showStudentDialog("Tambah Data Mahasiswa", null);
+            if (student != null) tableModel.addRow(student);
+        });
+
+        editButton.addActionListener(event -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow < 0) {
+                JOptionPane.showMessageDialog(frame, "Pilih data mahasiswa yang ingin diubah.",
+                        "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Object[] initialValues = {
+                    tableModel.getValueAt(selectedRow, 0),
+                    tableModel.getValueAt(selectedRow, 1),
+                    tableModel.getValueAt(selectedRow, 2)
+            };
+            Object[] updatedStudent = showStudentDialog("Ubah Data Mahasiswa", initialValues);
+            if (updatedStudent != null) {
+                for (int column = 0; column < updatedStudent.length; column++) {
+                    tableModel.setValueAt(updatedStudent[column], selectedRow, column);
+                }
+            }
+        });
+
+        return panel;
+    }
+
+    private Object[] showStudentDialog(String title, Object[] initialValues) {
+        JTextField nameField = new JTextField(initialValues == null ? "" : initialValues[0].toString(), 20);
+        JComboBox<String> programCombo = new JComboBox<>(new String[] {
+                "Teknik Informatika", "Sistem Informasi", "Manajemen", "Akuntansi"
+        });
+        JTextField gpaField = new JTextField(initialValues == null ? "" : initialValues[2].toString(), 8);
+        if (initialValues != null) {
+            programCombo.setSelectedItem(initialValues[1].toString());
+        }
+
+        JPanel form = new JPanel(new GridBagLayout());
+        addStudentField(form, "Nama:", nameField, 0);
+        addStudentField(form, "Program Studi:", programCombo, 1);
+        addStudentField(form, "IPK (0.00 - 4.00):", gpaField, 2);
+
+        while (true) {
+            int result = JOptionPane.showConfirmDialog(frame, form, title,
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (result != JOptionPane.OK_OPTION) return null;
+
+            String name = nameField.getText().trim();
+            String gpaText = gpaField.getText().trim().replace(',', '.');
+            double gpa;
+            try {
+                gpa = Double.parseDouble(gpaText);
+                if (name.isEmpty() || gpa < 0 || gpa > 4) {
+                    throw new IllegalArgumentException();
+                }
+            } catch (IllegalArgumentException exception) {
+                JOptionPane.showMessageDialog(frame,
+                        "Nama wajib diisi dan IPK harus berupa angka antara 0.00 sampai 4.00.",
+                        "Input Tidak Valid", JOptionPane.WARNING_MESSAGE);
+                continue;
+            }
+
+            return new Object[] { name, programCombo.getSelectedItem(), String.format("%.2f", gpa) };
+        }
+    }
+
+    private void addStudentField(JPanel panel, String label, Component field, int row) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(new JLabel(label), gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(field, gbc);
+    }
+}
