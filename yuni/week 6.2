@@ -1,0 +1,199 @@
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+class Tugas2App {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Tugas2Frame().setVisible(true));
+    }
+}
+
+class Tugas2Frame extends JFrame {
+    Tugas2Frame() {
+        super("Tugas 2 - Komponen Swing");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 420);
+        setLocationRelativeTo(null);
+        setJMenuBar(createMenuBar());
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Layout Tombol", new ButtonLayoutPanel());
+        tabs.addTab("Login", new LoginPanel());
+        tabs.addTab("Daftar Belanja", new ShoppingListPanel());
+        tabs.addTab("Jam Digital", new DigitalClockPanel());
+        add(tabs, BorderLayout.CENTER);
+    }
+
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem exitItem = new JMenuItem("Keluar");
+        exitItem.addActionListener(event -> System.exit(0));
+        fileMenu.add(exitItem);
+
+        JMenu helpMenu = new JMenu("Bantuan");
+        JMenuItem aboutItem = new JMenuItem("Tentang");
+        aboutItem.addActionListener(event -> JOptionPane.showMessageDialog(this,
+            "Aplikasi latihan komponen Java Swing untuk Tugas 2.",
+            "Tentang", JOptionPane.INFORMATION_MESSAGE));
+        helpMenu.add(aboutItem);
+
+        menuBar.add(fileMenu);
+        menuBar.add(helpMenu);
+        return menuBar;
+    }
+}
+
+class ButtonLayoutPanel extends JPanel {
+    private final JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
+    private boolean gridLayoutActive;
+
+    ButtonLayoutPanel() {
+        super(new BorderLayout(8, 8));
+        buttonsPanel.add(new JButton("Tombol 1"));
+        buttonsPanel.add(new JButton("Tombol 2"));
+        buttonsPanel.add(new JButton("Tombol 3"));
+        add(buttonsPanel, BorderLayout.CENTER);
+
+        JButton changeLayoutButton = new JButton("Ubah ke GridLayout 1 x 3");
+        changeLayoutButton.addActionListener(event -> {
+            if (gridLayoutActive) {
+                buttonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 12, 12));
+                changeLayoutButton.setText("Ubah ke GridLayout 1 x 3");
+            } else {
+                buttonsPanel.setLayout(new GridLayout(1, 3, 12, 12));
+                changeLayoutButton.setText("Ubah ke FlowLayout");
+            }
+            gridLayoutActive = !gridLayoutActive;
+            buttonsPanel.revalidate();
+            buttonsPanel.repaint();
+        });
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        controls.add(changeLayoutButton);
+        add(controls, BorderLayout.SOUTH);
+    }
+}
+
+class LoginPanel extends JPanel {
+    LoginPanel() {
+        super(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(8, 8, 8, 8);
+        c.anchor = GridBagConstraints.WEST;
+
+        JTextField usernameField = new JTextField(20);
+        JPasswordField passwordField = new JPasswordField(20);
+        addLoginRow(new JLabel("Username:"), usernameField, c, 0);
+        addLoginRow(new JLabel("Password:"), passwordField, c, 1);
+
+        JButton loginButton = new JButton("Masuk");
+        c.gridx = 1;
+        c.gridy = 2;
+        c.anchor = GridBagConstraints.EAST;
+        add(loginButton, c);
+        loginButton.addActionListener(event -> {
+            if (usernameField.getText().trim().isEmpty()
+                    || passwordField.getPassword().length == 0) {
+                JOptionPane.showMessageDialog(this,
+                    "Username dan password wajib diisi.", "Data kosong",
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Login berhasil.",
+                    "Informasi", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+    }
+
+    private void addLoginRow(JLabel label, JTextField field,
+                             GridBagConstraints c, int row) {
+        c.gridy = row;
+        c.gridx = 0;
+        c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+        add(label, c);
+        c.gridx = 1;
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        add(field, c);
+    }
+}
+
+class ShoppingListPanel extends JPanel {
+    private final DefaultListModel<String> items = new DefaultListModel<>();
+
+    ShoppingListPanel() {
+        super(new BorderLayout(8, 8));
+        JTextField itemField = new JTextField();
+        JButton addButton = new JButton("Tambah");
+        JPanel entryPanel = new JPanel(new BorderLayout(8, 0));
+        entryPanel.add(itemField, BorderLayout.CENTER);
+        entryPanel.add(addButton, BorderLayout.EAST);
+        add(entryPanel, BorderLayout.NORTH);
+
+        JList<String> itemList = new JList<>(items);
+        itemList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        add(new JScrollPane(itemList), BorderLayout.CENTER);
+
+        JButton removeButton = new JButton("Hapus terpilih");
+        add(removeButton, BorderLayout.SOUTH);
+        addButton.addActionListener(event -> {
+            String item = itemField.getText().trim();
+            if (item.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Masukkan nama barang terlebih dahulu.",
+                    "Input kosong", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            items.addElement(item);
+            itemField.setText("");
+            itemField.requestFocusInWindow();
+        });
+        itemField.addActionListener(event -> addButton.doClick());
+        removeButton.addActionListener(event -> {
+            int selectedIndex = itemList.getSelectedIndex();
+            if (selectedIndex < 0) {
+                JOptionPane.showMessageDialog(this, "Pilih barang yang akan dihapus.",
+                    "Belum ada pilihan", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            items.remove(selectedIndex);
+        });
+    }
+}
+
+class DigitalClockPanel extends JPanel {
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    DigitalClockPanel() {
+        super(new BorderLayout());
+        JLabel clockLabel = new JLabel("", SwingConstants.CENTER);
+        clockLabel.setFont(clockLabel.getFont().deriveFont(48f));
+        add(clockLabel, BorderLayout.CENTER);
+
+        Timer timer = new Timer(1000, event ->
+            clockLabel.setText(LocalTime.now().format(TIME_FORMAT)));
+        clockLabel.setText(LocalTime.now().format(TIME_FORMAT));
+        timer.start();
+    }
+}
